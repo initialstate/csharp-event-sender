@@ -6,7 +6,10 @@ The configuration support allows you to set a configuration element in your app.
 
 ```
 <configuration>
+  <configSections>
+    <section name="initialstate"
+             type="InitialState.Events.InitialStateConfig,InitialState.Events"/>
+    </configSections>
   <initialstate accessKey="YOUR_ACCESS_KEY_HERE" />
 </configuration>
 ```
-

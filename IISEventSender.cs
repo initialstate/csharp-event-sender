@@ -7,5 +7,6 @@ namespace InitialState.Events
     {
         void Send(string key, string value, string bucketKey = null, DateTime? timestamp = null, bool sendAsync = true);
         void Send<T>(T obj, string bucketKey = null, DateTime? timestamp = null, bool sendAsync = true);
+        void CreateBucket(string bucketKey = null, string bucketName = null, bool sendAsync = true);
     }
 }
