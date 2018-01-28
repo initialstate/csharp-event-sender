@@ -109,6 +109,67 @@ namespace InitialState.Events
             }
         }
 
+        public void CreateBucket(string bucketKey = null, string bucketName = null, bool sendAsync = true)
+        {
+
+            if (string.IsNullOrEmpty(bucketKey))
+                bucketKey = _config.DefaultBucketKey;
+
+            if (string.IsNullOrEmpty(bucketName))
+                bucketName = bucketKey;
+
+            var client = new RestClient(_config.ApiBase);
+            client.UserAgent = "initialstate_core_api/" + _version;
+
+            var request = new RestRequest("/buckets", Method.POST);
+            request.AddHeader("X-IS-AccessKey", _config.AccessKey);
+            request.AddHeader("Accept-Version", "0.0.4");
+            request.JsonSerializer = new JsonSerializer();
+
+
+            request.AddJsonBody(
+                new
+                {
+                    bucketKey = bucketKey,
+                    bucketName = bucketName
+                });
+
+
+            Parameter bodyRequest = request.Parameters.FirstOrDefault(x => x.Type == ParameterType.RequestBody);
+            string body = "<empty>";
+            if (bodyRequest != null)
+            {
+                body = bodyRequest.Value.ToString();
+            }
+
+            if (sendAsync)
+            {
+                client.ExecuteAsync(request, response =>
+                {
+                    if ((int)response.StatusCode > 299 || (int)response.StatusCode < 200)
+                    {
+                        _log.ErrorFormat(
+                            "Unsuccessfully created bucket {2}... {0} {1}",
+                            response.StatusCode, body,
+                            response.ResponseUri);
+
+                    }
+                });
+            }
+            else
+            {
+                IRestResponse response = client.Execute(request);
+
+                if ((int)response.StatusCode > 299 || (int)response.StatusCode < 200)
+                {
+                    _log.ErrorFormat("Unsuccessfully created bucket {2}... {0} {1}", response.StatusCode, body,
+                        response.ResponseUri);
+
+                    throw new SendException(response.StatusCode, body, response.Content);
+                }
+            }
+        }
+
         private double GetEpoch(DateTime? timestamp)
         {
             if (timestamp == null)
